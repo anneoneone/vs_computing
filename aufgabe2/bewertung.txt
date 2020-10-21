@@ -1,0 +1,6 @@
+In den Plots sieht man auf x-Achse die Seitenlänge der jeweiligen n-Ecke, welche sich zunehmend einem Kreis annähern.
+Auf der y-Achse werden die jeweiligen Fehler en ersichtlich, die zeigen inwieweit sich der Kreisumfang u_real vom Umfang der n-Ecke U_sn unterscheiden.
+Im Plot der Aufgabe 1b) ist zu erkennen, dass der Fehler sn bis zu einem Minimalpunkt an der Stelle der 15. Wiederholung abnimmt und anschließend wieder zunimmt.
+Dies ist durch die Auslöschung zu erklären, da sich der Subtrahend mit zunehmenden n dem Minuenden angleicht.
+
+Im Plot der Aufgabe 1c) wurde dieses Problem durch eine Umformung der Formel zur Berechnung der Seitenlänge sn behoben.
