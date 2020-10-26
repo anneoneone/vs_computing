@@ -1,5 +1,8 @@
 import numpy as np
 
+# defining random number generator
+rng = np.random.default_rng()
+
 # (*) Erzeugen Sie einen Vektor mit Nullen der Länge 10 und setzen den Wert des 5. Elementes auf eine 1.
 # YOUR CODE HERE
 a = np.zeros(10)
@@ -45,7 +48,6 @@ print("\nh: \n", h)
 
 # (*) Erzeugen Sie eine 5x3 Matrix mit Zufallswerteintegers zwischen 0-100 (geht in einer Zeile).
 # YOUR CODE HERE
-rng = np.random.default_rng()
 i = rng.integers(101, size=(5, 3))
 print("\ni: \n", i)
 
@@ -82,21 +84,19 @@ print("\nl: \n", l_nor)
 M = np.arange(12).reshape(4, 3)
 v = np.arange(3).reshape(3)
 M = M * v
-print("\nm: \n", M)
+print("\nM: \n", M)
 
 # (***) Erzeugen Sie einen Zufallsmatrix der Größe 10x2, die Sie als Kartesische Koordinaten interpretieren können ([[x0, y0],[x1, y1],[x2, y2]]).
 # Konvertieren Sie diese in Polarkoordinaten \url{https://de.wikipedia.org/wiki/Polarkoordinaten}.
 # Hinweis: nutzen Sie fuer die Berechnung des Winkel np.arctan2 und geben Sie jeweils Radius und Winkel als Vektor aus
 # YOUR CODE HERE
-o = np.arange(20).reshape(10, 2)
-# o = rng.integers(101, size=(10, 2))
-r = np.sqrt(o[:, 1::2] + o[:, ::2])
-angle = np.arctan2(o[:, 1::2], o[:, ::2])
+o_kar = rng.integers(101, size=(10, 2))
+r = np.sqrt(o_kar[:, 1::2]**2 + o_kar[:, ::2]**2)
+angle = np.arctan2(o_kar[:, 1::2], o_kar[:, ::2]) * 180 / np.pi
+o_pol = np.concatenate([r, angle], axis=1)
 
-print("\no: \n", o[:, 1::2])
-print("\no: \n", o[:, ::2])
-print("\no: \n", r**)
-print("\no: \n", angle)
+print("\no: \n", o_kar)
+print("\no: \n", o_pol)
 
 # (***) Erzeugen Sie einen Matrix der Größe 6x2, die Sie als Kartesische Koordinaten interpretieren können ([[x0, y0],[x1, y1],[x2, y2]]).
 # Schreiben Sie eine Funktion, die alle Punkt-Punkt Abstände berechnet.

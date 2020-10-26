@@ -55,7 +55,8 @@ if __name__ == '__main__':
     # use np.arange to create an numpy array and
     # shuffle all values using np.random.shuffle
     # please read the document for these functions
-    unsortedList = np.array([5, 14, 10, 7, 2, 13, 1, 12, 6, 9, 0, 3, 8, 11, 4])
+    unsortedList = np.arange(15)
+    np.random.shuffle(unsortedList)
 
     printArray(unsortedList)
 
