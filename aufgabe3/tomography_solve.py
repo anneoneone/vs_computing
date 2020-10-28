@@ -12,7 +12,8 @@ def show_phantom(size):
     plt.show()
 
 
-#show_phantom(128)
+show_phantom(128)
+
 
 
 def create_sinogram(nAngles, nSamples, angle_range=(0, np.pi)):
@@ -25,9 +26,6 @@ def create_sinogram(nAngles, nSamples, angle_range=(0, np.pi)):
 
     :return: Tuple sinogram matrix, Strahlstartpunkte, Strahlrichtungen
     """
-
-    nAngles = 4
-    nSamples = 3
 
     # Anlegen von leeren Matrizen für Strahlstart und -richtung
     # rd - Strahlrichtungen: pro Winkelschritt ein x-y-Richtung
@@ -42,21 +40,15 @@ def create_sinogram(nAngles, nSamples, angle_range=(0, np.pi)):
     # zu berechnen.
 
     for i in range(nAngles):
-        theta = i * angle_range[1] / nAngles
-        # besser mit linspace?? 
-        # theta2 = np.linspace(angle_range[0], angle_range[1], nAngles) # i * angle_range[1] / nAngles
+        # Winkel berechnen
+        theta = np.linspace(angle_range[0], angle_range[1], nAngles, endpoint=False) 
 
         # Tipp: Mittlere Strahlenstartpunkt in Polarkoordinatendarstellung
         # repräsentieren und dann in x/y Position umwandeln.
         # x, y vom mittleren Strahlenstartpunkt berechnen
-        rd[i, 0] = np.cos(theta)
-        rd[i, 1] = np.sin(theta)
+        rd[i, 0] = np.cos(theta[i])
+        rd[i, 1] = np.sin(theta[i])
     
-        # Tipp: Richtungsvektor der Strahlenfront ergibt sich auch direkt aus dem
-        # mittlere Strahlenstartpunkt rd[i] -> np.array([-x, -y])
-        # Ortsvektor in Richtungsvektor hin zum Koordinatenursprung umwandeln
-        rd[i] = np.array([-rd[i, 0], -rd[i, 1]])
-
         # Tipp: Die Strahlstartpositionen der Strahlenfront ergeben sich über
         # rp[i, j] = np.array([x,y]) + s*np.array([-y,x])
         # wobei s Anzahl Strahlen viele Skalierungsfaktoren zwischen -1 und 1 mit
@@ -64,32 +56,33 @@ def create_sinogram(nAngles, nSamples, angle_range=(0, np.pi)):
         s = np.linspace(1, -1, nSamples)
 
         for j in range(nSamples):
+            rp[i, j] = np.array([rd[i, 0], rd[i, 1]]) + s[j] * np.array([rd[i, 1], -rd[i, 0]]) 
 
-            rp[i, j] = np.array([rd[i, 0], rd[i, 1]]) + s[j] * np.array([-rd[i, 1], rd[i, 0]]) 
-
-
-    print("rd " + str(rd))
-    print("rp " + str(rp))
+        # Tipp: Richtungsvektor der Strahlenfront ergibt sich auch direkt aus dem
+        # mittlere Strahlenstartpunkt rd[i] -> np.array([-x, -y])
+        # Ortsvektor in Richtungsvektor hin zum Koordinatenursprung umwandeln
+        rd[i] = np.array([-rd[i, 0], -rd[i, 1]])
 
     # Ein sinogramm ist ein Array mit abgeschwaechten Intensitaeten pro Winkel
     # und Strahl, d.h. die Matrix ist ([Anzahl Strahlen] x [Anzahl der Winkel]),
     # bzw. Anzahl der Strahlen pro Aufnahme und die Anzahl der Aufnahmen.
     sinogram = np.zeros((nAngles, nSamples))
 
-    # for i in AnzahlWinkel:
-    #   for j in AnzahlSamples:
-    #       trace-Funktion aufrufen und sinogram-Matrix füllen
-    #       sinogram[i,j] = ...
+    for i in range(nAngles):
+      for j in range(nSamples):
 
-    # return sinogram, rp, rd
+        # trace-Funktion aufrufen und sinogram-Matrix füllen
+        sinogram[i,j] = tomograph.trace(rp[i,j], rd[i])
+
+    return sinogram, rp, rd
 
 
 # ---------------------------------------------
 # Main Programablauf:
 # ---------------------------------------------
-gridsizes = [32, 64]  # , 128, 256]
+gridsizes = [ 16, 32 ] #, 16] #, 128, 256]
 # plot mit unterfigures
-#fig, ax = plt.subplots(nrows=2, ncols=len(gridsizes))
+fig, ax = plt.subplots(nrows=2, ncols=len(gridsizes))
 # Für alle Gridsizes:
 for i,ng in enumerate(gridsizes):
     print("GRID: ", ng)
@@ -99,14 +92,21 @@ for i,ng in enumerate(gridsizes):
     nAngles = 2 * nGrid
 
     # Erstellen Sie das Sinogram mithilfe Ihrer zuvor geschriebenen Funktion.
-    create_sinogram(nAngles, nSamples)
-    # Plotten Sie das Sinogram mit Hilfe von Matplotlib. Nutzen Sie die 'gist_yarg' color map
-    # ax[0][i].imshow(Matrix, cmap="gist_yarg")
+    sinogram, rp, rd = create_sinogram(nAngles, nSamples)
+
+    
+    
+    
+    ax[0][i].imshow(sinogram, cmap="gist_yarg")
 
     # Die bekannten aufgenommenen Intensitaetswerte im Sinogram speichern wir als ein Vektor (siehe np.ravel)
     # in logarithmierter Form ab
+    b = np.log(np.ravel(sinogram))
+
 
     # Initialisieren Sie eine Matrix A in der gewünschten Größe.
+    mat_A = np.zeros((b.size, pow(gridsizes[i], 2)))
+
     # Für jeden Winkel und jeden Strahl fügen wir jetzt eine Zeile in das Gelichungsystem ein.
     # Dafür müssen Sie über alle Winkel die Funktion grid_intersect (Rückgabe -> I, G, dt)
     # nutzen. I[k] beinhaltet den Index des Strahls, der mit der länge dt[k]
@@ -114,14 +114,20 @@ for i,ng in enumerate(gridsizes):
     # (Pixel) sind dann die Einträge in die Matrix A. Gucken Sie notfalls nochmal
     # die Vorlesungsunterlagen an.
 
+    for j in range(nAngles):
+        # print("rp " + str(rp[j,:]))
+        I, G, dt = tomograph.grid_intersect(nGrid, rp[j,:], rd[j])
+
+        # Das ist das gleiche wie:
+        for k in range(len(I)):
+            mat_A[j*nSamples+I[k], G[k]] = dt[k]
+
+    # Plotten Sie das Sinogram mit Hilfe von Matplotlib. Nutzen Sie die 'gist_yarg' color map
     # Achtung!: Die Strahlen indices I beziehen sich immer nur lokal auf die Strahlen,
     # die an grid_intersect übergeben wurden um den richtigen Index in der Matrix
     # zu finden muss (i*nSamples+I) berechnet werden, wobei i die Laufvariabel
     # über alle Winkel(nAngles) ist.
     # Hier kann etwas Indexmagic stattfinden: A[i*nSamples+I, G] = dt
-    # Das ist das gleiche wie:
-    # for k in range(len(I)):
-    #   A[i*nSamples+I[k], G[k]] = dt[k]
 
     # --------------------------------------------------------------------------
     # Bis hier hin kommt ihr mit der ersten Vorlesung!
@@ -130,13 +136,18 @@ for i,ng in enumerate(gridsizes):
     # --------------------------------------------------------------------------
 
     # Lösen des Ausgleichsproblems mit Hilfe von np.linalg.solve
-
+    Matrix = np.linalg.lstsq(mat_A, b, rcond=-1)
+    
     # Lösungsvektor wieder auf die gewünschte Form bringen - reshape() und
+    Matrix = Matrix[0].reshape(nGrid, nGrid)
+
     # wieder exponieren.
+    Matrix = np.exp(Matrix)
 
+    print("Matrix \n" + str(Matrix) + "mat_A.shape " + str(Matrix.shape))
     # Plotten Sie die Rekonstruktion mit Hilfe von Matplotlib. Nutzen Sie die 'gist_yarg' color map
-    # ax[1][i].imshow(Matrix, cmap="gist_yarg")
+    ax[1][i].imshow(Matrix, cmap="gist_yarg")
 
 
-# plt.savefig('tg_fig.png', bbox_inches='tight')
-#plt.show()
+plt.savefig('tg_fig.png', bbox_inches='tight')
+plt.show()
