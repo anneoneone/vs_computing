@@ -80,7 +80,7 @@ def create_sinogram(nAngles, nSamples, angle_range=(0, np.pi)):
 # ---------------------------------------------
 # Main Programablauf:
 # ---------------------------------------------
-gridsizes = [ 128, 256 ] #, 16] #, 128, 256]
+gridsizes = [ 32, 64 ] #, 16] #, 128, 256]
 # plot mit unterfigures
 fig, ax = plt.subplots(nrows=2, ncols=len(gridsizes))
 # Für alle Gridsizes:
