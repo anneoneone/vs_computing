@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.image as mpimage
-
+import mog as mg
 
 def seam_carve(image, seam_mask):
     """
@@ -38,13 +38,26 @@ def calculate_accum_energy(energy):
     """
     # 2.1 TODO: Initialisieren Sie das neue resultierende Array
     # Codebeispiel: accumE = np.array(energy)
-    ...
+    accumE = np.array(energy)
+    num_rows, num_cols = accumE.shape
+    
+    # print("energy: \n",energy)
     # 2.2 TODO: Füllen Sie das Array indem Sie die akkumulierten
     # Energien berechnen (dynamische Programmierung)
-
     # Tipp: Benutzen Sie das Beispiel aus der Übung zum debuggen
 
+    for i in range(1, num_rows):
+        for j in range(0, num_cols):
+            j_l = accumE[i-1, max(0, j-1)]              # oberes linkes feld
+            j_m = accumE[i-1, j]                        # oberes mittleres feld
+            j_r = accumE[i-1, min(num_cols-1, j+1)]     # oberes rechtes feld
+
+            # akkum. Energie = aktuelles Feld + minimalen Wert der oberen 3 Felder
+            accumE[i,j] = accumE[i,j] + min(j_l, j_m, j_r) 
+            
+
     # 2.3 TODO: Returnen Sie die die akkumulierten Energien
+    return accumE
 
 
 def create_seam_mask(accumE):
@@ -56,22 +69,37 @@ def create_seam_mask(accumE):
     """
     # 3.1.1 TODO: Initialisieren Sie eine Maske voller True-Werte
     # Codebeispiel: Mask = np.ones(accumE.shape, dtype=bool)
-    ...
-    # 3.1.2 TODO: Finden Sie das erste Minimum der akkumulierten Energien.
+    Mask = np.ones(accumE.shape, dtype=bool)
+    
+    # Größe der Matrix bestimmen
+    num_rows, num_cols = accumE.shape
 
+    # 3.1.2 TODO: Finden Sie das erste Minimum der akkumulierten Energien.
+    # for i in accumE[:,...]:
     # Achtung! Nach welchem Minimum ist gefragt? Wo muss nach dem Minimum gesucht werden?
 
+    # Index des Minimums der letzten Zeile bestimmen
+    min_value = np.argmin(accumE[num_rows-1, :])
+
     # 3.1.3 TODO: Setzten Sie die entsprechende Stelle (np.argmin) in der Maske auf False
-
     # 3.1.4 TODO: Wiederholen Sie das für alle Zeilen von unten nach oben.
-
     # Codebeispiel: for row in reversed(range(0, accumE.shape[0])):
 
+    for i in reversed(range(0, num_rows)):
+        Mask[i, min_value] = 0              # Minimum FALSE setzen
+
+        j_l = max(0, min_value-1)           # Linker Start vom Suchfenster
+        j_r = min(num_cols-1, min_value+1)  # Rechter Start vom Suchfenster
+
+        # Index neues Minimum = Index altes Minimum - 1 + Index des Minimums im Suchfenster
+        min_value = min_value - 1 + np.argmin(accumE[i-1, j_l:j_r+1])
+        
     # Achtung! Wieder: Wo muss nach dem nächsten Minimum gesucht werden?
     # Denkt dran, die Minimums müssen benachbart sein. Das schränkt die Suche
     # nach dem nächsten Minimum enorm ein.
 
     # 3.1.5 TODO: Returnen Sie die fertige Maske
+    return Mask
 
 
 # ------------------------------------------------------------------------------
@@ -82,7 +110,7 @@ if __name__ == '__main__':
     # Initalisierung
     # --------------------------------------------------------------------------
     # lädt das Bild
-    img = mpimage.imread('bilder/tower.jpg')  # 'bilder/bird.jpg')
+    img = mpimage.imread('bilder/bird.jpg')  # 'bilder/bird.jpg')
 
     # erstellt eine globale Maske
     # In der Maske sollen alle Pfade gespeichert werden die herrausgeschnitten wurden
@@ -91,7 +119,7 @@ if __name__ == '__main__':
 
     # Parameter einstellen:
     # Tipp: hier number_of_seams_to_remove am Anfang einfach mal auf 1 setzen
-    number_of_seams_to_remove = 10
+    number_of_seams_to_remove = 20
 
     # erstellet das neue Bild, welches verkleinert wird
     new_img = np.array(img, copy=True)
@@ -101,7 +129,7 @@ if __name__ == '__main__':
     # --------------------------------------------------------------------------
     # Für jeden Seam, der entfernt werden soll:
     for idx in range(number_of_seams_to_remove):
-        ...
+
         # Aufgabe 1:
         # 1.1 TODO: Berechnen Sie die Gradientenlängen des Eingabe Bildes
         # und nutzen Sie diese als Energie-Werte. Sie können dazu Ihre Funktion
@@ -109,12 +137,20 @@ if __name__ == '__main__':
         # Codebeispiel: from mog import magnitude_of_gradients
         #               energy = magnitude_of_gradients(new_img)
         # Tipp: Als Test wäre eine einfache Matrix hilfreich:
-        # energy = np.array([[40, 60, 40, 10],[53.3, 50, 25, 47.5],[50, 40, 40, 60]])
+        # energy = np.array(
+        #     [[40, 60, 40, 10, 20],
+        #     [53.3, 50, 25, 47.5, 40],
+        #     [50, 40, 40, 60, 90],
+        #     [30, 70, 75, 25, 50],
+        #     [65, 70, 30, 30, 10]])
 
+        energy = mg.magnitude_of_gradients(new_img)
+        
         # Aufgabe 2:
         # 2.1 TODO: Implementieren Sie die Funktion calculate_accum_energy.
         # Sie soll gegeben eine Energy-Matrix die akkumulierten Energien berechnen.
         # Codebeispiel: accumE = calculate_accum_energy(energy)
+        accumE = calculate_accum_energy(energy)
 
         # Aufgabe 3:
         # 3.1 TODO: Implementieren Sie die Funktion create_seam_mask.
@@ -128,25 +164,35 @@ if __name__ == '__main__':
         # |. . . \ . .|     [True, True, True, False, True, True]]
         #       Seam
         # Codebeispiel: seam_mask = create_seam_mask(accumE)
+        seam_mask = create_seam_mask(accumE)
 
         # Aufgabe 4:
         # 4.1 TODO: Entfernen Sie den "seam" aus dem Bild mithilfe der Maske und
         # der Funktion seam_carve. Diese Funktion ist vorgegeben und muss nicht
         # implementiert werden.
         # Codebeispiel: new_img = seam_carve(new_img, seam_mask)
+        new_img = seam_carve(new_img, seam_mask)
 
         # Aufgabe 5:
         # 5.1 TODO: Updaten Sie die globale Maske mit dem aktuellen Seam (update_global_mask).
+        global_mask = update_global_mask(global_mask, seam_mask)
 
         # 5.2 TODO: Kopieren Sie das Originalbild und färben Sie alle Pfade, die bisher
         #            entfert wurden, rot mithilfe der globalen Maske
         # Codebeispiel: copy_img[global_mask, :] = [255,0,0]
-        # Aufgabe 6:
-        # 6.1 TODO: Speichere das verkleinerte Bild
+        copy_img = np.array(img, copy=True)
+        copy_img[global_mask, :] = [255,0,0]
 
-        # 6.2 TODO: Speichere das Orginalbild mit allen bisher entfernten Pfaden
+    # Aufgabe 6:
+    # 6.1 TODO: Speichere das verkleinerte Bild
+    mpimage.imsave("bilder/a2/new_img.png", new_img)
 
-        # 6.3 TODO: Gebe die neue Bildgröße aus:
-        # Codebeispiel: print(idx, " image carved:", new_img.shape)
+    # 6.2 TODO: Speichere das Orginalbild mit allen bisher entfernten Pfaden
+    mpimage.imsave("bilder/a2/img.png", img)
+
+    # 6.3 TODO: Gebe die neue Bildgröße aus:
+    # Codebeispiel: print(idx, " image carved:", new_img.shape)
+    print(idx, " image carved:", new_img.shape)
 
     # 6.4. TODO: Speichere das resultierende Bild nocheinmal extra.
+    mpimage.imsave("bilder/a2/copy_img.png", copy_img)
