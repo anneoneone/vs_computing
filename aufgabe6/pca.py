@@ -62,7 +62,7 @@ def plot_multiple_image(imgs):
 
 def plot_interactive(points_2d, images):
     """
-    Erschaft ein interaktiven Plot. Wenn auf ein Datenpunkt im niedrig dimensionalen Raum geklickt wird,
+    Erschafft einen interaktiven Plot. Wenn auf ein Datenpunkt im niedrig dimensionalen Raum geklickt wird,
     wird der zugehörige ursprüngliche Datenpunkt als Bild angezeigt
 
     :param points_2d: n 2-dimensional datapoints (ndarray with shape (n,2))
@@ -75,22 +75,29 @@ def plot_interactive(points_2d, images):
         plt.show()
 
     fig,ax = plt.subplots(1, 1)
+
+
     ax.plot(points_2d[:, 0], points_2d[:, 1], 'o', picker=5)
     fig.canvas.mpl_connect('pick_event', on_pick)
+
+    return ax
 
 
 if __name__ == '__main__':
     # load Data
     data = np.load("data.npy")
     one = plt.imread("one.jpg")
+    # three = data[99]
+    three = plt.imread("three.png")
+    three = three[:,:,0]
 
     # plot data
-    plot_multiple_image(data[:30])
-    plt.show()
+    # plot_multiple_image(data[:30])
+    # plt.show()
 
     # plot one image
-    plot_image(one)
-    plt.show()
+    # plot_image(one)
+    # plt.show()
 
     # get principle components
     pcs, points_2d = calculate_pca(data)
@@ -98,3 +105,34 @@ if __name__ == '__main__':
     points_2d = project_points_into_low_space(data)
 
     # TODO: Ihre Erforschung
+    
+
+    # one plotten
+    plot_image(three)
+    plt.show()
+    print("three ", three.shape)
+
+    # three in vector umwandeln
+    three_vec = three.reshape(pow(len(three),2))
+    # three_vec = three
+    print("three_vec ", three_vec.shape)
+    
+    # dimensionsreduktion durchführen
+    three_low_space = project_points_into_low_space(three_vec)
+    print("three_low_space ", three_low_space.shape)
+
+    # dimensithreen wieder hinzufügen und reshapen
+    three_orig_space = project_points_into_orginal_space(three_low_space)
+    print("three_orig_space ", three_orig_space.shape)
+
+
+    # data = np.append(data, three)
+    ax = plot_interactive(points_2d, data)
+    ax.plot(three_low_space[0][0], three_low_space[0][1], 'xr')
+
+    print("HK 0: " + str(three_low_space[0][0]) + "\nHK 1: " + str(three_low_space[0][1]))
+
+
+
+    plot_image(three_orig_space)
+    plt.show()

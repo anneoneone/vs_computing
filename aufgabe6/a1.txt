@@ -1,0 +1,34 @@
+Aufgabe 1
+
+1.1)
+Das Bild der "1" wird versucht mit den Koeffizienten zu rekonstruieren, welche 
+anhand der "3"en erstellt wurden. So sieht das Bild der "1" nach der Rück-
+transformation eher wie eine verwaschene "3", als wie eine "1" aus. Der Grund
+dafür ist, dass Trainingsdaten ausschließlich aus "3"en besteht.
+
+1.2)
+Das Bild der "3" sieht auch nach der Rücktransformierung aus wie eine "3". Die 
+Kanten sind schärfer und der Anteil von grauen Pixel geringer.
+
+1.3)
+Diese PCA könnte dafür genutzt werden, Bilder von Zahlen zu erkennen und diese 
+zu klassifizieren. Dabei würde ich das Bild in den 2D-Raum transformieren und 
+anschließend die Unterschiede zwischen Original und Rücktransformierung mit-
+einander vergleichen.
+
+2.1)
+In der 1. HK wird die Rotation der "3"en angegeben. Je weiter der Wert für die
+1. HK ins Negative geht, desto stärker ist die Rotation nach links und je 
+weiter dieser Wert ins Positive geht, desto stärker ist die Rotation nach 
+rechts.
+
+2.2)
+In der 2. HK wird die Höhe bzw. Stärke der Linie der "3"en angegeben. Je weiter 
+der Wert für die 2. HK ins Negative geht, desto dünner und höher sind die ent-
+sprechenden "3"en und je weiter dieser Wert ins Positive geht, desto kleiner und
+dicker sind die "3"en.
+
+2.3)
+Man könnte diese PCA nutzen, um den "Charakter" von geschriebenen "3"en zu klassi-
+fizieren. Beispielsweise könnte so eine Handschrift analysiert werden und ähnlich
+geschriebene "3"en gefunden werden.
